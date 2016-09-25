@@ -10,36 +10,39 @@ class Vector
     int _size;
 public:
     Vector();
-    Vector(int);
-    T& front();
-    T& back();
-    bool empty();
-    int size();
-    T& at(int);
-    void push_back(T);
-    void push_front(T);
-    void pop_back();
-    void pop_front();
-    void sort();
-    T& operator[] (int);
-    template<typename T1> friend std::ostream&  operator <<(std::ostream& os, Vector<T1>& v)
-    {
-        for(int i = 0; i < v.size();i++)
-        {
-            os<<v.at(i)<<" ";
-        }
-        return os;
-    }
-    template<typename T1> friend std::istream& operator >>(std::istream& is,Vector<T1> v)
-    {
-        for(int i = 0; i < v.size(); i++)
-        {
-            is >> v.at(i);
-        }
-        return is;
-    }
-    Vector<T> operator+(Vector<T>);
-    Vector<T> operator-(Vector<T>);
+    explicit Vector(int);
+    Vector(const Vector&);
+    ~Vector();
+
+    T&                      front();
+    T&                      back();
+
+    bool                    empty();
+
+    int                     size();
+
+    T&                      at(int);
+
+    void                    push_back(T);
+    void                    push_front(T);
+    void                    pop_back();
+    void                    pop_front();
+
+    void                    sort();
+
+
+    T&                      operator[] (int);
+
+    template<typename T1>
+    friend std::ostream&    operator <<(std::ostream&, Vector<T1>&);
+
+    template<typename T1>
+    friend std::istream&    operator >>(std::istream&,Vector<T1>&);
+
+    Vector<T>               operator = (const Vector<T>&);
+
+    Vector<T>               operator+(Vector<T>&);
+    Vector<T>               operator-(Vector<T>&);
 };
 
 template<typename T>
@@ -59,6 +62,25 @@ Vector<T>::Vector(int aSize)
     {
         ptr[i]=0;
     }
+}
+
+template<typename T>
+Vector<T>::Vector(const Vector& v)
+    :_size(v._size)
+{
+    ptr = new T[v._size];
+    for(int i(0);i<v._size;i++)
+    {
+        ptr[i]=v.ptr[i];
+    }
+}
+
+template<typename T>
+Vector<T>::~Vector()
+{
+    _size = 0;
+    delete[] ptr;
+    ptr = nullptr;
 }
 
 template<typename T>
@@ -92,7 +114,7 @@ int Vector<T>::size()
 template<typename T>
 T& Vector<T>::at(int index)
 {
-    if(index<_size)
+    if(index<_size && index>=0)
     {
         return ptr[index];
     }
@@ -102,77 +124,81 @@ T& Vector<T>::at(int index)
 template<typename T>
 void Vector<T>::push_back(T value)
 {
-    Vector<T> v(_size+1);
+    T* v = new T[++_size];
 
-    for(int i=0;i<this->size();i++) // перенос всех элементов этого вектора в новый
+    for(int i=0;i<_size;i++) // перенос всех элементов этого вектора в новый
     {
-        v.at(i) = this->ptr[i];
+        v[i] = ptr[i];
     }
-    v.at(v.size()-1) = value; // инициализация последнего элемента нового вектора переданным значением
+    v[_size-1] = value; // инициализация последнего элемента нового вектора переданным значением
 
-    delete[] this->ptr;
+    delete[] ptr;
 
-    this->ptr = v.ptr;
-    this->_size = v._size;
+    ptr = v;
+
+    v = nullptr;
 }
 
 template<typename T>
 void Vector<T>::push_front(T value)
 {
-    Vector<T> v(_size+1);
+    T* v = new T[++_size];
 
-    for(int i=1;i<this->size()+1;i++) // перенос всех элементов этого вектора в новый, начиная с 1 элемента
+    v[0] = value; // инициализация 0 элемента нового вектора переданным значением
+    for(int i=1;i<_size+1;i++) // перенос всех элементов этого вектора в новый, начиная с 1 элемента
     {
-        v.at(i) = this->ptr[i-1];
+        v[i] = ptr[i-1];
     }
-    v.ptr[0] = value; // инициализация 0 элемента нового вектора переданным значением
 
-    delete[] this->ptr;
+    delete[] ptr;
 
-    this->ptr = v.ptr;
-    this->_size = v._size;
+    ptr = v;
+
+    v = nullptr;
 }
 
 template<typename T>
 void Vector<T>::pop_back()
 {
-    if(this->empty())
+    if(empty())
     {
         return; // исключение
     }
 
-    Vector<T> v(_size-1);
+    T* v = new T[--_size];
 
-    for(int i=0;i<_size-1;i++) // перенос элементов этого вектора кроме последнего в новый
+    for(int i=0;i<_size;i++) // перенос элементов этого вектора кроме последнего в новый
     {
-        v.at(i) = this->ptr[i];
+        v[i] = ptr[i];
     }
 
-    delete[] this->ptr;
+    delete[] ptr;
 
-    this->ptr = v.ptr;
-    this->_size = v._size;
+    ptr = v;
+
+    v = nullptr;
 }
 
 template<typename T>
 void Vector<T>::pop_front()
 {
-    if(this->empty())
+    if(empty())
     {
         return; // исключение
     }
 
-    Vector<T> v(_size-1);
+    T* v = new T[--_size];
 
-    for(int i=1;i<_size;i++) // перенос элементов этого вектора кроме первого в новый
+    for(int i=1;i<_size+1;i++) // перенос элементов этого вектора кроме первого в новый
     {
-        v.at(i) = this->ptr[i];
+        v[i-1] = ptr[i];
     }
 
-    delete[] this->ptr;
+    delete[] ptr;
 
-    this->ptr = v.ptr;
-    this->_size = v._size;
+    ptr = v;
+
+    v = nullptr;
 }
 
 template<typename T>
@@ -204,26 +230,87 @@ T& Vector<T>::operator[] (int i)
 }
 
 template<typename T>
-Vector<T> Vector<T>::operator +(Vector<T> v)
+std::ostream& operator<<(std::ostream& os, Vector<T>& v)
 {
-    Vector<T> v1(this->_size + v._size);
-    for(int i=0;i<this->_size;i++)
+    for(int i = 0; i < v.size();i++)
     {
-        v1.at(i) = ptr[i];
+        os<<v.at(i)<<" ";
     }
-    for(int i=this->_size;i<v1.size();i++)
-    {
-        v1.at(i)=v.at(i-this->size());
-    }
-
-    return v1;
+    return os;
 }
 
 template<typename T>
-Vector<T> Vector<T>::operator -(Vector<T> v)
+std::istream& operator>>(std::istream& is, Vector<T>& v)
 {
-    // Понятия не имею как должна работать бинарная опирация - для векторов)
-    return v;
+    for(int i = 0; i < v.size(); i++)
+    {
+        is >> v.at(i);
+    }
+    return is;
+}
+
+template<typename T>
+Vector<T>  Vector<T>::operator = (const Vector<T> & other)
+{
+    if(ptr != nullptr)
+    {
+        delete[] ptr;
+    }
+    _size = other._size;
+    ptr = new T[_size];
+
+    for(int i=0;i<_size;i++)
+    {
+        ptr[i] = other.ptr[i];
+    }
+
+    return *this;
+}
+
+template<typename T>
+Vector<T> Vector<T>::operator +(Vector<T>& v)
+{
+    int __size = _size > v._size ? _size : v._size;
+    int min_size = _size < v._size ? _size : v._size;
+
+    Vector<T> tempV(__size);
+
+    for(int i=0;i<__size;i++)
+    {
+        if(i<min_size)
+        {
+            tempV.ptr[i] = ptr[i] + v.ptr[i];
+        }
+        else
+        {
+            tempV.ptr[i] = ptr[i];
+        }
+    }
+
+    return tempV;
+}
+
+template<typename T>
+Vector<T> Vector<T>::operator -(Vector<T>& v)
+{
+    int __size = _size > v._size ? _size : v._size;
+    int min_size = _size < v._size ? _size : v._size;
+
+    Vector<T> tempV(__size);
+
+    for(int i=0;i<__size;i++)
+    {
+        if(i<min_size)
+        {
+            tempV.ptr[i] = ptr[i] - v.ptr[i];
+        }
+        else
+        {
+            tempV.ptr[i] = ptr[i];
+        }
+    }
+
+    return tempV;
 }
 
 #endif // VECTOR_H
