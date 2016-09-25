@@ -7,10 +7,10 @@ template<typename T>
 class Vector
 {
     T* ptr;
-    int _size;
+    size_t _size;
 public:
     Vector();
-    explicit Vector(int);
+    explicit Vector(size_t);
     Vector(const Vector&);
     ~Vector();
 
@@ -21,7 +21,7 @@ public:
 
     int                     size();
 
-    T&                      at(int);
+    T&                      at(size_t);
 
     void                    push_back(T);
     void                    push_front(T);
@@ -31,18 +31,18 @@ public:
     void                    sort();
 
 
-    T&                      operator[] (int);
+    T&                      operator [] (const size_t);
 
     template<typename T1>
-    friend std::ostream&    operator <<(std::ostream&, Vector<T1>&);
+    friend std::ostream&    operator << (std::ostream&, const Vector<T1>&);
 
     template<typename T1>
-    friend std::istream&    operator >>(std::istream&,Vector<T1>&);
+    friend std::istream&    operator >> (std::istream&, const Vector<T1>&);
 
     Vector<T>               operator = (const Vector<T>&);
 
-    Vector<T>               operator+(Vector<T>&);
-    Vector<T>               operator-(Vector<T>&);
+    Vector<T>               operator + (const Vector<T>&);
+    Vector<T>               operator - (const Vector<T>&);
 };
 
 template<typename T>
@@ -53,12 +53,12 @@ Vector<T>::Vector()
 }
 
 template<typename T>
-Vector<T>::Vector(int aSize)
+Vector<T>::Vector(size_t aSize)
     :_size(aSize)
 {
     ptr = new T[aSize];
 
-    for(int i=0;i<aSize;i++)
+    for(size_t i = 0; i < aSize; i++)
     {
         ptr[i]=0;
     }
@@ -69,7 +69,7 @@ Vector<T>::Vector(const Vector& v)
     :_size(v._size)
 {
     ptr = new T[v._size];
-    for(int i(0);i<v._size;i++)
+    for(size_t i = 0; i < v._size; i++)
     {
         ptr[i]=v.ptr[i];
     }
@@ -112,7 +112,7 @@ int Vector<T>::size()
 }
 
 template<typename T>
-T& Vector<T>::at(int index)
+T& Vector<T>::at(size_t index)
 {
     if(index<_size && index>=0)
     {
@@ -126,7 +126,7 @@ void Vector<T>::push_back(T value)
 {
     T* v = new T[++_size];
 
-    for(int i=0;i<_size;i++) // перенос всех элементов этого вектора в новый
+    for(size_t i = 0; i < _size; i++) // перенос всех элементов этого вектора в новый
     {
         v[i] = ptr[i];
     }
@@ -145,7 +145,7 @@ void Vector<T>::push_front(T value)
     T* v = new T[++_size];
 
     v[0] = value; // инициализация 0 элемента нового вектора переданным значением
-    for(int i=1;i<_size+1;i++) // перенос всех элементов этого вектора в новый, начиная с 1 элемента
+    for(size_t i = 1; i < _size+1; i++) // перенос всех элементов этого вектора в новый, начиная с 1 элемента
     {
         v[i] = ptr[i-1];
     }
@@ -165,18 +165,18 @@ void Vector<T>::pop_back()
         return; // исключение
     }
 
-    T* v = new T[--_size];
+    T* tempV = new T[--_size];
 
-    for(int i=0;i<_size;i++) // перенос элементов этого вектора кроме последнего в новый
+    for(size_t i = 0; i < _size; i++) // перенос элементов этого вектора кроме последнего в новый
     {
-        v[i] = ptr[i];
+        tempV[i] = ptr[i];
     }
 
     delete[] ptr;
 
-    ptr = v;
+    ptr = tempV;
 
-    v = nullptr;
+    tempV = nullptr;
 }
 
 template<typename T>
@@ -187,64 +187,66 @@ void Vector<T>::pop_front()
         return; // исключение
     }
 
-    T* v = new T[--_size];
+    T* tempV = new T[--_size];
 
-    for(int i=1;i<_size+1;i++) // перенос элементов этого вектора кроме первого в новый
+    for(size_t i = 1; i < _size+1; i++) // перенос элементов этого вектора кроме первого в новый
     {
-        v[i-1] = ptr[i];
+        tempV[i-1] = ptr[i];
     }
 
     delete[] ptr;
 
-    ptr = v;
+    ptr = tempV;
 
-    v = nullptr;
+    tempV = nullptr;
 }
 
 template<typename T>
 void Vector<T>::sort()
 {
     //Выбором
-    for(int i=0;i<this->_size-1;i++)
+    for(size_t i = 0; i < _size-1; i++)
     {
-        int min_index=i;
-        for(int j=min_index+1;j<this->_size;j++)
+        size_t min_index = i;
+        for(size_t j = min_index+1; j < _size; j++)
         {
-            if(ptr[min_index]>ptr[j])
+            if(ptr[min_index] > ptr[j])
             {
-                min_index=j;
+                min_index = j;
             }
         }
 
         if(min_index != i)
         {
-            std::swap(ptr[i],ptr[min_index]);
+            size_t temp = ptr[i];
+            ptr[i] = ptr[min_index];
+            ptr[min_index] = temp;
         }
     }
 }
 
 template<typename T>
-T& Vector<T>::operator[] (int i)
+T& Vector<T>::operator [] (const size_t i)
 {
     return ptr[i];
 }
 
 template<typename T>
-std::ostream& operator<<(std::ostream& os, Vector<T>& v)
+std::ostream& operator << (std::ostream& os, const Vector<T>& v)
 {
-    for(int i = 0; i < v.size();i++)
+    for(size_t i = 0; i < v._size; i++)
     {
-        os<<v.at(i)<<" ";
+        os << v.ptr[i] << " ";
     }
     return os;
 }
 
 template<typename T>
-std::istream& operator>>(std::istream& is, Vector<T>& v)
+std::istream& operator >> (std::istream& is, const Vector<T>& v)
 {
-    for(int i = 0; i < v.size(); i++)
+    for(size_t i = 0; i < v._size; i++)
     {
-        is >> v.at(i);
+        is >> v.ptr[i];
     }
     return is;
 }
@@ -259,7 +261,7 @@ Vector<T>  Vector<T>::operator = (const Vector<T> & other)
     _size = other._size;
     ptr = new T[_size];
 
-    for(int i=0;i<_size;i++)
+    for(size_t i = 0; i < _size; i++)
     {
         ptr[i] = other.ptr[i];
     }
@@ -268,16 +270,16 @@ Vector<T>  Vector<T>::operator = (const Vector<T> & other)
 }
 
 template<typename T>
-Vector<T> Vector<T>::operator +(Vector<T>& v)
+Vector<T> Vector<T>::operator + (const Vector<T>& v)
 {
-    int __size = _size > v._size ? _size : v._size;
-    int min_size = _size < v._size ? _size : v._size;
+    size_t __size = _size > v._size ? _size : v._size;
+    size_t min_size = _size < v._size ? _size : v._size;
 
     Vector<T> tempV(__size);
 
-    for(int i=0;i<__size;i++)
+    for(size_t i = 0; i < __size; i++)
     {
-        if(i<min_size)
+        if(i < min_size)
         {
             tempV.ptr[i] = ptr[i] + v.ptr[i];
         }
@@ -291,16 +293,16 @@ Vector<T> Vector<T>::operator +(Vector<T>& v)
 }
 
 template<typename T>
-Vector<T> Vector<T>::operator -(Vector<T>& v)
+Vector<T> Vector<T>::operator - (const Vector<T>& v)
 {
-    int __size = _size > v._size ? _size : v._size;
-    int min_size = _size < v._size ? _size : v._size;
+    size_t __size = _size > v._size ? _size : v._size;
+    size_t min_size = _size < v._size ? _size : v._size;
 
     Vector<T> tempV(__size);
 
-    for(int i=0;i<__size;i++)
+    for(size_t i = 0; i < __size; i++)
     {
-        if(i<min_size)
+        if(i < min_size)
         {
             tempV.ptr[i] = ptr[i] - v.ptr[i];
         }
