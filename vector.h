@@ -21,6 +21,8 @@ public:
 
     bool                    empty();
 
+    void                    clear() throw( VException );
+
     int                     size();
 
     T&                      at(size_t) throw( VException );
@@ -149,6 +151,21 @@ bool Vector<T>::empty()
         return true;
     }
     return false;
+}
+
+template<typename T>
+void Vector<T>::clear() throw( VException )
+{
+    _size = 0;
+    if(ptr != nullptr) delete[] ptr;
+    try
+    {
+        ptr = new T;
+    }
+    catch(VException& ex)
+    {
+        throw("Bad alloc");
+    }
 }
 
 template<typename T>

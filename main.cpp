@@ -1,6 +1,5 @@
 #include <iostream>
 #include "vector.h"
-
 int main()
 {
     int n;
@@ -61,6 +60,12 @@ int main()
 
         v2 = v2 - v1;
         std::cout<<"v2 = v2 - v1 : "<<v2<<std::endl;
+
+        std::cout << "v1.clear()" << std::endl;
+        v1.clear();
+        std::cout << "v1 = " << v1 << std::endl;
+        v2 = v2 - v1;
+        std::cout << "v2 = v2 - v1 : " << v2 << std::endl;
     }
     catch(VException& ex)
     {
