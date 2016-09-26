@@ -71,7 +71,7 @@ Vector<T>::Vector(size_t aSize) throw( VException )
     }
     catch(std::bad_alloc& ba)
     {
-        throw("Bad alloc");
+        throw VException("Bad alloc");
     }
 
     for(size_t i = 0; i < aSize; i++)
@@ -90,7 +90,7 @@ Vector<T>::Vector(std::initializer_list<T> il) throw( VException )
     }
     catch(std::bad_alloc& ba)
     {
-        throw("Bad alloc");
+        throw VException("Bad alloc");
     }
 
     typename std::initializer_list<T>::iterator it = il.begin();
@@ -112,7 +112,7 @@ Vector<T>::Vector(const Vector& v) throw( VException )
     }
     catch(std::bad_alloc& ba)
     {
-        throw("Bad alloc");
+        throw VException("Bad alloc");
     }
 
     for(size_t i = 0; i < v._size; i++)
@@ -162,7 +162,7 @@ T& Vector<T>::at(size_t index) throw( VException )
 {
     if(index >= _size)
     {
-        throw("Incorrect index");
+        throw VException("Incorrect index");
     }
 
     return ptr[index];
@@ -189,7 +189,7 @@ void Vector<T>::push_back(T value) throw( VException )
     }
     catch(std::bad_alloc& ba)
     {
-        throw("Bad alloc");
+        throw VException("Bad alloc");
     }
 }
 
@@ -214,7 +214,7 @@ void Vector<T>::push_front(T value) throw( VException )
     }
     catch(std::bad_alloc& ba)
     {
-        throw("Bad alloc");
+        throw VException("Bad alloc");
     }
 }
 
@@ -223,7 +223,7 @@ void Vector<T>::pop_back() throw( VException )
 {
     if(empty())
     {
-        throw("Deleting element from empty vector");
+        throw VException("Deleting element from empty vector");
     }
 
     try
@@ -243,7 +243,7 @@ void Vector<T>::pop_back() throw( VException )
     }
     catch(std::bad_alloc& ba)
     {
-        throw("Bad alloc");
+        throw VException("Bad alloc");
     }
 }
 
@@ -252,7 +252,7 @@ void Vector<T>::pop_front() throw( VException )
 {
     if(empty())
     {
-        throw("Deleting element from empty vector");
+        throw VException("Deleting element from empty vector");
     }
 
     try
@@ -272,7 +272,7 @@ void Vector<T>::pop_front() throw( VException )
     }
     catch(std::bad_alloc& ba)
     {
-        throw("Bad alloc");
+        throw VException("Bad alloc");
     }
 }
 
@@ -305,7 +305,7 @@ T& Vector<T>::operator [] (const size_t i) throw( VException )
 {
     if(i >= _size)
     {
-        throw("Incorrect index");
+        throw VException("Incorrect index");
     }
 
     return ptr[i];
@@ -352,7 +352,7 @@ Vector<T>  Vector<T>::operator = (const Vector<T> & other) throw( VException )
     }
     catch(std::bad_alloc& ba)
     {
-        throw("Bad alloc");
+        throw VException("Bad alloc");
     }
 }
 
