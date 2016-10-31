@@ -9,33 +9,37 @@ class Vector
 {
     T* ptr;
     size_t _size;
+
+    size_t max_size;
+
+    void                    free_resources() noexcept;
 public:
     Vector() throw(VException);
     explicit Vector(size_t) throw( VException );
     Vector(std::initializer_list<T>) throw( VException );
     Vector(const Vector&) throw( VException );
-    ~Vector();
+    ~Vector() noexcept;
 
-    T&                      front();
-    T&                      back();
+    T&                      front() const noexcept;
+    T&                      back() const noexcept;
 
-    bool                    empty();
+    bool                    empty() const noexcept;
 
-    void                    clear() throw( VException );
+    void                    clear() noexcept;
 
-    int                     size();
+    const size_t&           size() const noexcept;
 
-    T&                      at(size_t) throw( VException );
+    T&                      at(size_t) const throw( VException );
 
     void                    push_back(T) throw( VException );
     void                    push_front(T) throw( VException );
     void                    pop_back() throw( VException );
     void                    pop_front() throw( VException );
 
-    void                    sort();
+    void                    sort() noexcept;
 
 
-    T&                      operator [] (const size_t) throw( VException );
+    T&                      operator [] (const size_t) const throw( VException );
 
     template<typename T1>
     friend std::ostream&    operator << (std::ostream&, const Vector<T1>&);
@@ -43,19 +47,32 @@ public:
     template<typename T1>
     friend std::istream&    operator >> (std::istream&, const Vector<T1>&);
 
-    Vector<T>               operator = (const Vector<T>&) throw( VException );
+    const Vector<T>&        operator = (const Vector<T>&) throw( VException );
 
-    Vector<T>               operator + (const Vector<T>&);
-    Vector<T>               operator - (const Vector<T>&);
+    Vector<T>               operator + (const Vector<T>&) noexcept;
+    Vector<T>               operator - (const Vector<T>&) noexcept;
 };
 
 template<typename T>
+void Vector<T>::free_resources() noexcept
+{
+    if(ptr != nullptr)
+    {
+        delete[] ptr;
+    }
+    _size = 0;
+    max_size = 0;
+
+    ptr = nullptr;
+}
+
+template<typename T>
 Vector<T>::Vector() throw( VException )
-    :_size(0)
+    :_size(0), max_size(5)
 {
     try
     {
-        ptr = new T;
+        ptr = new T[5];
     }
     catch(std::bad_alloc& ba)
     {
@@ -65,30 +82,36 @@ Vector<T>::Vector() throw( VException )
 
 template<typename T>
 Vector<T>::Vector(size_t aSize) throw( VException )
-    :_size(aSize)
+    :_size(aSize), max_size(aSize*2)
 {
     try
     {
-        ptr = new T[aSize];
+        ptr = new T[aSize*2];
     }
     catch(std::bad_alloc& ba)
     {
         throw VException("Bad alloc");
     }
 
-    for(size_t i = 0; i < aSize; i++)
+    for(size_t i = 0; i < aSize*2; i++)
     {
-        ptr[i]=0;
+        ptr[i]= T();
     }
 }
 
 template<typename T>
 Vector<T>::Vector(std::initializer_list<T> il) throw( VException )
-    :_size(il.size())
 {
     try
     {
-        ptr = new T[il.size()];
+        free_resources();
+
+        size_t temp = il.size();
+
+        _size = temp;
+        max_size = temp*2;
+
+        ptr = new T[il.size()*2];
     }
     catch(std::bad_alloc& ba)
     {
@@ -97,54 +120,63 @@ Vector<T>::Vector(std::initializer_list<T> il) throw( VException )
 
     typename std::initializer_list<T>::iterator it = il.begin();
 
-    for(size_t i = 0; i < _size && it != il.end(); i++)
+    size_t i = 0;
+    while(it != il.end())
     {
         ptr[i] = *it;
+        i++;
         it++;
+    }
+
+    for(size_t i = il.size(); i < max_size; i++)
+    {
+        ptr[i] = T();
     }
 }
 
 template<typename T>
 Vector<T>::Vector(const Vector& v) throw( VException )
-    :_size(v._size)
 {
     try
     {
-        ptr = new T[v._size];
+        free_resources();
+
+        _size = v._size;
+        max_size = v.max_size;
+
+        ptr = new T[v.max_size];
     }
     catch(std::bad_alloc& ba)
     {
         throw VException("Bad alloc");
     }
 
-    for(size_t i = 0; i < v._size; i++)
+    for(size_t i = 0; i < v.max_size; i++)
     {
         ptr[i]=v.ptr[i];
     }
 }
 
 template<typename T>
-Vector<T>::~Vector()
+Vector<T>::~Vector() noexcept
 {
-    _size = 0;
-    delete[] ptr;
-    ptr = nullptr;
+    free_resources();
 }
 
 template<typename T>
-T& Vector<T>::front()
+T& Vector<T>::front() const noexcept
 {
     return *ptr;
 }
 
 template<typename T>
-T& Vector<T>::back()
+T& Vector<T>::back() const noexcept
 {
     return ptr[_size-1];
 }
 
 template<typename T>
-bool Vector<T>::empty()
+bool Vector<T>::empty() const noexcept
 {
     if(_size == 0)
     {
@@ -154,28 +186,19 @@ bool Vector<T>::empty()
 }
 
 template<typename T>
-void Vector<T>::clear() throw( VException )
+void Vector<T>::clear() noexcept
 {
-    _size = 0;
-    if(ptr != nullptr) delete[] ptr;
-    try
-    {
-        ptr = new T;
-    }
-    catch(VException& ex)
-    {
-        throw("Bad alloc");
-    }
+    free_resources();
 }
 
 template<typename T>
-int Vector<T>::size()
+const size_t& Vector<T>::size() const noexcept
 {
     return _size;
 }
 
 template<typename T>
-T& Vector<T>::at(size_t index) throw( VException )
+T& Vector<T>::at(size_t index) const throw( VException )
 {
     if(index >= _size)
     {
@@ -187,52 +210,79 @@ T& Vector<T>::at(size_t index) throw( VException )
 
 template<typename T>
 void Vector<T>::push_back(T value) throw( VException )
-{
-    try
+{   
+    if(_size == max_size)
     {
-        T* v = new T[++_size];
-
-        for(size_t i = 0; i < _size; i++) // перенос всех элементов этого вектора в новый
+        //if(_size == 0 )
+        try
         {
-            v[i] = ptr[i];
+            T* v = new T[_size*2];
+
+            for(size_t i = 0; i < _size; i++) // перенос всех элементов этого вектора в новый
+            {
+                v[i] = ptr[i];
+            }
+            v[_size] = value; // инициализация последнего элемента нового вектора переданным значением
+
+            delete[] ptr;
+
+            ptr = v;
+            _size++;
+            max_size *= 2;
+
+            v = nullptr;
         }
-        v[_size-1] = value; // инициализация последнего элемента нового вектора переданным значением
-
-        delete[] ptr;
-
-        ptr = v;
-
-        v = nullptr;
+        catch(std::bad_alloc& ba)
+        {
+            throw VException("Bad alloc");
+        }
     }
-    catch(std::bad_alloc& ba)
+    else
     {
-        throw VException("Bad alloc");
+        ptr[_size] = value;
+        _size++;
     }
 }
 
 template<typename T>
 void Vector<T>::push_front(T value) throw( VException )
 {
-    try
+    if(_size == max_size)
     {
-        T* v = new T[++_size];
-
-        v[0] = value; // инициализация 0 элемента нового вектора переданным значением
-        for(size_t i = 1; i < _size+1; i++) // перенос всех элементов этого вектора в новый, начиная с 1 элемента
+        try
         {
-            v[i] = ptr[i-1];
+            T* v = new T[_size*2];
+
+            v[0] = value;
+            for(size_t i = 1; i < _size+1; i++) // перенос всех элементов этого вектора в новый
+            {
+                v[i] = ptr[i-1];
+            }
+
+            delete[] ptr;
+
+            ptr = v;
+            _size++;
+            max_size *= 2;
+
+            v = nullptr;
         }
-
-        delete[] ptr;
-
-        ptr = v;
-
-        v = nullptr;
+        catch(std::bad_alloc& ba)
+        {
+            throw VException("Bad alloc");
+        }
     }
-    catch(std::bad_alloc& ba)
+    else
     {
-        throw VException("Bad alloc");
+        for(size_t i = _size; i > 0; i--)
+        {
+            ptr[i] = ptr[i-1];
+        }
+        ptr[0] = value;
+
+        _size++;
     }
+
 }
 
 template<typename T>
@@ -243,25 +293,8 @@ void Vector<T>::pop_back() throw( VException )
         throw VException("Deleting element from empty vector");
     }
 
-    try
-    {
-        T* tempV = new T[--_size];
-
-        for(size_t i = 0; i < _size; i++) // перенос элементов этого вектора кроме последнего в новый
-        {
-            tempV[i] = ptr[i];
-        }
-
-        delete[] ptr;
-
-        ptr = tempV;
-
-        tempV = nullptr;
-    }
-    catch(std::bad_alloc& ba)
-    {
-        throw VException("Bad alloc");
-    }
+    ptr[_size-1] = T();
+    _size--;
 }
 
 template<typename T>
@@ -272,29 +305,16 @@ void Vector<T>::pop_front() throw( VException )
         throw VException("Deleting element from empty vector");
     }
 
-    try
+    for(size_t i = 0; i < _size; i++)
     {
-        T* tempV = new T[--_size];
-
-        for(size_t i = 1; i < _size+1; i++) // перенос элементов этого вектора кроме первого в новый
-        {
-            tempV[i-1] = ptr[i];
-        }
-
-        delete[] ptr;
-
-        ptr = tempV;
-
-        tempV = nullptr;
+        ptr[i] = ptr[i+1];
     }
-    catch(std::bad_alloc& ba)
-    {
-        throw VException("Bad alloc");
-    }
+
+    _size--;
 }
 
 template<typename T>
-void Vector<T>::sort()
+void Vector<T>::sort() noexcept
 {
     //Выбором
     for(size_t i = 0; i < _size-1; i++)
@@ -318,7 +338,7 @@ void Vector<T>::sort()
 }
 
 template<typename T>
-T& Vector<T>::operator [] (const size_t i) throw( VException )
+T& Vector<T>::operator [] (const size_t i) const throw( VException )
 {
     if(i >= _size)
     {
@@ -349,7 +369,7 @@ std::istream& operator >> (std::istream& is, const Vector<T>& v)
 }
 
 template<typename T>
-Vector<T>  Vector<T>::operator = (const Vector<T> & other) throw( VException )
+const Vector<T>&  Vector<T>::operator = (const Vector<T> & other) throw( VException )
 {
     try
     {
@@ -374,7 +394,7 @@ Vector<T>  Vector<T>::operator = (const Vector<T> & other) throw( VException )
 }
 
 template<typename T>
-Vector<T> Vector<T>::operator + (const Vector<T>& v)
+Vector<T> Vector<T>::operator + (const Vector<T>& v) noexcept
 {
     size_t __size = _size > v._size ? _size : v._size;
     size_t min_size = _size < v._size ? _size : v._size;
@@ -397,7 +417,7 @@ Vector<T> Vector<T>::operator + (const Vector<T>& v)
 }
 
 template<typename T>
-Vector<T> Vector<T>::operator - (const Vector<T>& v)
+Vector<T> Vector<T>::operator - (const Vector<T>& v) noexcept
 {
     size_t __size = _size > v._size ? _size : v._size;
     size_t min_size = _size < v._size ? _size : v._size;

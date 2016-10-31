@@ -9,10 +9,10 @@ class VException : public std::exception
     std::string name;
 public:
     VException();
-    VException(std::string);
-    VException(std::string, std::exception&);
+    VException(const std::string&);
+    VException(const std::string&, std::exception&);
 
-    std::string get_name() const;
+    const std::string& get_name() const;
 };
 
 #endif // VEXCEPTION_H
